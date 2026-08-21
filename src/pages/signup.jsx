@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { signUp } from "../services/api";
+import { signIn } from "../services/api";
 import "../css/auth.css";
 
 function SignUp() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -35,7 +37,12 @@ function SignUp() {
     try {
       await signUp(email, password);
 
-      // TODO:Redirect to Sign In page later
+      const data = await signIn(email, password);
+
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("email", data.email);
+
+      navigate("/");
     } catch (err) {
       setError(err.message);
     } finally {

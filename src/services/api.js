@@ -40,3 +40,40 @@ export const signIn = async (email, password) => {
 
   return await response.json();
 };
+
+export async function generateLinkToken() {
+  const token = localStorage.getItem("accessToken");
+
+  console.log("Token:", token);
+  console.log("All localStorage:", localStorage);
+
+  const response = await fetch(`${BASE_URL}/api/devices/link-token`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to generate token");
+  }
+
+  return response.json();
+}
+
+export async function getDevices() {
+  const token = localStorage.getItem("accessToken");
+
+  const response = await fetch(`${BASE_URL}/api/devices`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch devices");
+  }
+
+  return await response.json();
+}
