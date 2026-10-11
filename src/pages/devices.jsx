@@ -1,148 +1,34 @@
-import { generateLinkToken, getDevices } from "../services/api";
-import { useState, useEffect } from "react";
+import { useCallback, useState } from "react";
+import ActivityList, { ActivityHeader } from "../components/ActivityList";
+import DevicePanel from "../components/DevicePanel";
+import { ErrorBanner, SampleNotice, StatSkeleton } from "../components/Feedback";
+import LinkDeviceModal from "../components/LinkDeviceModal";
+import { usePageTitle } from "../hooks/usePageTitle";
+import { useTracker } from "../hooks/useTracker";
 
-function Devices() {
-  const [devices, setDevices] = useState([]);
-  const [deviceToken, setDeviceToken] = useState("");
-  const [expiresAt, setExpiresAt] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  async function fetchDevices() {
-    try {
-      const data = await getDevices();
-
-      console.log(data);
-
-      setDevices(data);
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  useEffect(() => {
-    fetchDevices();
-  }, []);
-
-  useEffect(() => {
-    function handleKeyDown(event) {
-      if (event.key === "Escape") {
-        closeModal();
-      }
-    }
-
-    if (isModalOpen) {
-      document.addEventListener("keydown", handleKeyDown);
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isModalOpen]);
-
-  async function handleGenerateToken() {
-    try {
-      const response = await generateLinkToken();
-
-      console.log(response);
-
-      setDeviceToken(response.token);
-      setExpiresAt(response.expiresAt);
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  function openModal() {
-    setIsModalOpen(true);
-  }
-
-  function closeModal() {
-    setIsModalOpen(false);
-
-    // Optional:
-    // setDeviceToken("");
-    // setExpiresAt("");
-  }
+export default function Devices() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const closeModal = useCallback(() => setModalOpen(false), []);
+  const { data, status, error, reload, isSample } = useTracker("recent");
+  usePageTitle("Devices");
 
   return (
-    <div className="devices-page">
-      <div className="devices-header">
-        <div className="devices-header-content">
-          <h1 className="devices-title">Connected Devices</h1>
-
-          <p className="devices-subtitle">Manage all your connected devices.</p>
-        </div>
-
-        <button className="add-device-button" onClick={openModal}>
-          + Add Device
-        </button>
-      </div>
-
-      <div className="devices-list">
-        {devices.length === 0 ? (
-          <p className="devices-empty-state">No devices connected.</p>
-        ) : (
-          devices.map((device) => <p key={device.id}>{device.deviceName}</p>)
-        )}
-      </div>
-
-      {isModalOpen && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div
-            className="device-modal"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="device-modal-header">
-              <h2 className="device-modal-title">Link New Device</h2>
-
-              <button className="modal-close-button" onClick={closeModal}>
-                ×
-              </button>
-            </div>
-
-            <div className="device-modal-body">
-              <p className="device-modal-description">
-                Generate a temporary token and enter it in the desktop
-                application.
-              </p>
-
-              <button
-                className="generate-token-button"
-                onClick={handleGenerateToken}
-              >
-                Generate Device Token
-              </button>
-
-              {deviceToken && (
-                <div className="device-token-section">
-                  <h3 className="device-token-title">Device Token</h3>
-
-                  <div className="device-token-container">
-                    <p className="device-token-value">{deviceToken}</p>
-                  </div>
-
-                  <p className="device-token-expiry">
-                    Expires:{" "}
-                    {new Date(expiresAt).toLocaleString("en-IN", {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
-                  </p>
-
-                  <button
-                    className="copy-token-button"
-                    onClick={() => navigator.clipboard.writeText(deviceToken)}
-                  >
-                    Copy Token
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+    <section className="page devices-page">
+      {isSample && <SampleNotice />}
+      {error && <ErrorBanner message={error.message} onRetry={reload} />}
+      {status === "loading" && !data ? (
+        <StatSkeleton />
+      ) : (
+        <div className="devices-layout">
+          <DevicePanel devices={data?.devices ?? []} onAdd={() => setModalOpen(true)} />
+          <section className="panel timeline-panel">
+            <ActivityHeader />
+            <ActivityList items={data?.activity ?? []} />
+            {data?.integration && <p className="integration-note">{data.integration}</p>}
+          </section>
         </div>
       )}
-    </div>
+      <LinkDeviceModal open={modalOpen} onClose={closeModal} />
+    </section>
   );
 }
-
-export default Devices;
