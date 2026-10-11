@@ -34,6 +34,11 @@ export default function AuthLayout({
           <LogoMark />
           <h1>{title}</h1>
           <p className="auth-description">{description}</p>
+          {import.meta.env.VITE_TEST_MODE === "true" && (
+            <p className="test-banner" role="status">
+              Test mode: any email and password will sign in. The Azure API is not used.
+            </p>
+          )}
           {error && (
             <p className="error-message" role="alert">
               {error}

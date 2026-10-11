@@ -166,6 +166,16 @@ button, input { font-family: inherit; }
   padding: 28px 32px 40px;
 }
 
+.test-banner {
+  margin: 0 0 14px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #fff6eb;
+  color: #b45309;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
 .page-header {
   display: flex;
   justify-content: space-between;

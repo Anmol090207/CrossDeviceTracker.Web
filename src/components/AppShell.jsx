@@ -84,6 +84,9 @@ export default function AppShell() {
         </div>
       </aside>
       <main id="main" className="app-main">
+        {import.meta.env.VITE_TEST_MODE === "true" && (
+          <p className="test-banner">Local test API. The Azure backend is not being used.</p>
+        )}
         <Outlet />
       </main>
     </div>
